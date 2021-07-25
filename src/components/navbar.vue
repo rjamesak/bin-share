@@ -1,20 +1,23 @@
 <template>
-  <div class="hello"></div>
+  <div class="navbar">
+    navbar:
+    <router-link to="/">Home</router-link> |
+    <router-link to="/about">About</router-link> |
+    <router-link to="/signup">Signup</router-link>
+  </div>
 </template>
 
 <script>
 export default {
-  name: "HelloWorld",
+  name: "navbar",
   data() {
-    return {}
+    return {};
   },
   methods: {
     name() {},
   },
-  props: {
-    msg: String,
-  },
-}
+  props: {},
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
