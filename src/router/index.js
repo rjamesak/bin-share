@@ -49,7 +49,7 @@ const routes = [
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/Profile.vue"),
     meta: {
-      authReq: false, // change to true
+      authReq: true, // change to true
     },
   },
   {
@@ -61,7 +61,7 @@ const routes = [
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/Delete-Account.vue"),
     meta: {
-      authReq: false, // change to true
+      authReq: true, // change to true
     },
   },
   {
@@ -72,7 +72,7 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ "../views/Map.vue"),
     meta: {
-      authReq: false, // change to true
+      authReq: true, // change to true
     },
   },
   {
@@ -84,7 +84,7 @@ const routes = [
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/List.vue"),
     meta: {
-      authReq: false, // change to true
+      authReq: true, // change to true
     },
   },
 ];
@@ -93,6 +93,16 @@ const router = new VueRouter({
   mode: "history",
   base: process.env.BASE_URL,
   routes,
+});
+
+// Nav guard: check for logged in users
+router.beforeEach((to, from, next) => {
+  if (to.matched.some((route) => route.meta.authReq)) {
+    // add conditional to check if logged in
+    next({ path: "/" });
+  } else {
+    next();
+  }
 });
 
 export default router;

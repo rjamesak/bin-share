@@ -1,16 +1,24 @@
 import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/firestore";
+// import firebaseui from "firebaseui";
 
 // firebase init
 const firebaseConfig = {
-    apiKey: process.env.VUE_APP_APIKEY,
-    authDomain: process.env.VUE_APP_AUTHDOMAIN,
-    projectId: process.env.VUE_APP_PROJECTID,
-    storageBucket: process.env.VUE_APP_STORAGEBUCKET,
-    messagingSenderId: process.env.VUE_APP_MESSAGESENDERID,
-    appId: process.env.VUE_APP_APPID,
-    measurementId: process.env.VUE_APP_MEASUREMENTID,
+    // apiKey: process.env.VUE_APP_APIKEY,
+    // authDomain: process.env.VUE_APP_AUTHDOMAIN,
+    // projectId: process.env.VUE_APP_PROJECTID,
+    // storageBucket: process.env.VUE_APP_STORAGEBUCKET,
+    // messagingSenderId: process.env.VUE_APP_MESSAGESENDERID,
+    // appId: process.env.VUE_APP_APPID,
+    // measurementId: process.env.VUE_APP_MEASUREMENTID,
+    apiKey: "AIzaSyCp-gQPojN57ZRH1uwnVEzCsV4Ufbe6oA0",
+    authDomain: "trashbin-share.firebaseapp.com",
+    projectId: "trashbin-share",
+    storageBucket: "trashbin-share.appspot.com",
+    messagingSenderId: "890236558445",
+    appId: "1:890236558445:web:1d9e5e989ee26cbdeab364",
+    measurementId: "G-BZ5LECZ5W7",
 };
 firebase.initializeApp(firebaseConfig);
 
