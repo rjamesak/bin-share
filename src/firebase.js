@@ -27,7 +27,6 @@ const fb_db = firebase.firestore();
 const fb_auth = firebase.auth();
 // collection references
 const fb_users = fb_db.collection("users");
-// const currentUser = firebase.auth().currentUser;
 
 // GET CURRENT USER // to do
 const getCurrentUser = () => {
