@@ -1,7 +1,7 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import Login from "../views/Login.vue";
-// import { fb_auth } from "../firebase";
+import { fb_auth, getCurrentUser, currentUser } from "../firebase";
 
 Vue.use(VueRouter);
 
@@ -98,8 +98,14 @@ const router = new VueRouter({
 // Nav guard: check for logged in users
 router.beforeEach((to, from, next) => {
   if (to.matched.some((route) => route.meta.authReq)) {
+    const user = getCurrentUser();
+    console.log("currentUser in router navGuard:", currentUser);
+    if (!fb_auth.currentUser) {
+      next({ path: "/" });
+    } else {
+      next();
+    }
     // add conditional to check if logged in
-    next({ path: "/" });
   } else {
     next();
   }

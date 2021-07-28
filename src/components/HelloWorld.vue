@@ -6,15 +6,13 @@
 export default {
   name: "HelloWorld",
   data() {
-    return {}
+    return {};
   },
   methods: {
     name() {},
   },
-  props: {
-    msg: String,
-  },
-}
+  props: {},
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
