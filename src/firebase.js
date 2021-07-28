@@ -27,9 +27,9 @@ const fb_db = firebase.firestore();
 const fb_auth = firebase.auth();
 // collection references
 const fb_users = fb_db.collection("users");
-const currentUser = fb_auth.currentUser;
+// const currentUser = firebase.auth().currentUser;
 
-// GET CURRENT USER
+// GET CURRENT USER // to do
 const getCurrentUser = () => {
     return new Promise((resolve, reject) => {
         fb_auth.onAuthStateChanged((user) => {
@@ -37,16 +37,16 @@ const getCurrentUser = () => {
                 // User is signed in, see docs for a list of available properties
                 // https://firebase.google.com/docs/reference/js/firebase.User
                 console.log("user in firebase.js:", user);
-                var uid = user.uid;
                 resolve(user);
                 // ...
             } else {
                 // User is signed out
                 // ...
                 console.log("no signed-in user");
+                reject('no signed in user')
             }
         });
     });
 };
 
-export { fb_db, fb_auth, fb_users, getCurrentUser, currentUser };
+export { fb_db, fb_auth, fb_users, getCurrentUser };

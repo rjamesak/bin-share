@@ -43,6 +43,7 @@ const routes = [
   {
     path: "/profile",
     name: "Profile",
+    props: true,
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
@@ -98,14 +99,18 @@ const router = new VueRouter({
 // Nav guard: check for logged in users
 router.beforeEach((to, from, next) => {
   if (to.matched.some((route) => route.meta.authReq)) {
-    const user = getCurrentUser();
-    console.log("currentUser in router navGuard:", currentUser);
-    if (!fb_auth.currentUser) {
-      next({ path: "/" });
-    } else {
-      next();
-    }
     // add conditional to check if logged in
+    getCurrentUser()
+      // user is returned from the promise
+      .then((user) => {
+        console.log("user in nav guard promise:", user)
+        next()
+      })
+      .catch((err) => {
+        // no signed in user
+        console.log("no user:", err)
+        next({ path: "/" })
+      })
   } else {
     next();
   }
