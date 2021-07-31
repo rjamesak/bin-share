@@ -109,7 +109,7 @@ router.beforeEach((to, from, next) => {
       .catch((err) => {
         // no signed in user
         console.log("no user:", err)
-        next({ path: "/" })
+        next({ name: "Login" })
       })
   } else {
     next();

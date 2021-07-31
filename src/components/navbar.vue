@@ -1,9 +1,9 @@
 <template>
   <div class="navbar">
-    navbar:
-    <router-link to="/">Login</router-link> |
-    <router-link to="/about">About</router-link> |
-    <router-link to="/signup">Signup</router-link>
+    <router-link :to="{ name: 'Login' }">Login</router-link> |
+    <router-link :to="{ name: 'About' }">About</router-link> |
+    <router-link :to="{ name: 'Signup' }">Signup</router-link> |
+    <router-link :to="{ name: 'Profile' }">Profile</router-link>
   </div>
 </template>
 

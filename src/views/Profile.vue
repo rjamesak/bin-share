@@ -1,22 +1,84 @@
 <template>
   <div class="profile">
+    <navbar />
     <h1>Profile Page</h1>
-    <p>{{ this.user }}</p>
+    <form @submit.prevent="updateProfile" id="profile-form" class="form-items">
+      <label for="email-input">Email:</label>
+      <input
+        type="email"
+        name="email"
+        id="email-input"
+        v-model="form.email"
+        :placeholder="user.email"
+      />
+      <label for="full-name">Full Name:</label>
+      <input
+        type="text"
+        name="full-name"
+        id="full-name"
+        v-model="form.fullName"
+        :placeholder="user.fullName"
+      />
+      <label for="address">Address:</label>
+      <input
+        type="text"
+        name="address"
+        id="address"
+        v-model="form.address"
+        :placeholder="user.address"
+      />
+      <label for="city">City:</label>
+      <input
+        type="text"
+        name="city"
+        id="city"
+        v-model="form.city"
+        :placeholder="user.city"
+      />
+      <button type="submit">Update Information</button>
+    </form>
+
+    <a href="" @click.prevent="signout">signout</a>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
+import navbar from "@/components/navbar.vue";
 
 export default {
   name: "Profile",
-  components: {},
-  props: {
-    user: {
-      type: Object,
-      default: function () {
-        return { user: "none" };
+  components: { navbar },
+  data() {
+    return {
+      form: {
+        fullName: null,
+        email: null,
+        address: null,
+        city: null,
       },
+    };
+  },
+  methods: {
+    async signout() {
+      console.log("signing out");
+      await this.$store.dispatch("logout");
+      console.log(this.$store.getters.loadingStatus);
+      this.$router.push({
+        name: "Login",
+      });
+    },
+    async updateProfile() {
+      //send data to store to update
+      let user = this.form;
+      user.uid = this.user.uid;
+      console.log("user before dispatch:", user);
+      await this.$store.dispatch("updateUserProfile", user);
+    },
+  },
+  computed: {
+    user() {
+      return this.$store.state.userProfile;
     },
   },
 };

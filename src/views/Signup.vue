@@ -2,7 +2,7 @@
   <div class="signup">
     <navbar />
     <h1>Signup Page</h1>
-    <form @submit.prevent="submit">
+    <form @submit.prevent="submit" class="form-items">
       <label for="email-input">Email</label>
       <input type="email" name="email" id="email-input" v-model="form.email" />
       <label for="password-input">Password</label>

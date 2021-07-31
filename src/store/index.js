@@ -1,18 +1,28 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import { fb_auth, fb_users } from "../firebase";
+import createPersistedState from "vuex-persistedstate"
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
+  plugins: [createPersistedState()],
   state: {
     userProfile: {},
+    loadingStatus: false
   },
   // MUTATIONS
   mutations: {
     setUserProfile(state, userData) {
       state.userProfile = userData;
+      state.loadingStatus = false;
     },
+    clearUserProfile(state) {
+      state.userProfile = {}
+    },
+    loadingStatus(state, newLoadingStatus) {
+      state.loadingStatus = newLoadingStatus
+    }
   },
   // ACTIONS
   actions: {
@@ -26,16 +36,12 @@ export default new Vuex.Store({
       console.log("user after user creation", user);
       // add to users collection
       dispatch("addUserToCollection", user);
-      // const response = await fb_users.doc(userCredential.user.uid).set({
-      //   email: userCredential.user.email,
-      // });
-      // console.log("add to collection response:", response);
 
       // get profile info from collection and commit user to state
       dispatch("getUserProfile", user);
     },
 
-    // LOGIN
+    // LOGIN ACTION
     async login({ dispatch }, form) {
       console.log("from store, login:", form.email, form.password);
       // destructuring, gets the .user from the returned user credential
@@ -49,19 +55,49 @@ export default new Vuex.Store({
       dispatch("getUserProfile", userCredential.user);
     },
 
-    // ADD USER TO COLLECTION
+    // LOGOUT ACTION
+    async logout({ commit }) {
+      console.log('logging out in store...')
+      // firebase logout
+      fb_auth.signOut()
+        .then(() => {
+          console.log('Signout successful!')
+        })
+        .catch((error) => {
+          console.log('Signout error:', error)
+        })
+      // clear user
+      commit("clearUserProfile")
+    },
+
+    // ADD TO USER COLLECTION
     async addUserToCollection({ dispatch }, user) {
       console.log("in addUserToCollection, user:", user);
       console.log("in addUserToCollection, user.uid:", user.uid);
       const response = await fb_users.doc(user.uid).set({
         email: user.email,
-      });
+      }, { merge: true });
       console.log("add to collection response:", response);
+    },
+
+    // UPDATE USER PROFILE
+    async updateUserProfile({ dispatch }, user) {
+      console.log("update user in store:", user)
+      // update the collection
+      const response = await fb_users.doc(user.uid).set({
+        email: user.email,
+        fullName: user.fullName,
+        address: user.address,
+        city: user.city
+      })
+      console.log('update user response:', response)
+      dispatch("getUserProfile", user)
     },
 
     // GET USER FROM COLLECTION, call commit
     // gets user info from collection and commits to state
     getUserProfile({ commit }, user) {
+      this.state.loadingStatus = true
       console.log("in getUserProfile, user", user);
       // get user profile from firebase (send the uid)
       fb_users
@@ -70,18 +106,24 @@ export default new Vuex.Store({
         .then((doc) => {
           if (doc.exists) {
             console.log("doc data:", doc.data());
-            commit("setUserProfile", doc.data());
+            let userProfileData = doc.data()
+            userProfileData.uid = user.uid
+            commit("setUserProfile", userProfileData);
           } else {
             console.log("No document exists");
+            this.state.loadingStatus = false;
           }
         })
         .catch((error) => {
           console.log("Error getting doc:", error);
+          this.state.loadingStatus = false
         });
-      // set profile in state
-      // console.log("getUserProfile data:", userProfile);
-      // console.log("getUserProfile userProfile.data:", userProfile.data);
-      // commit("setUserProfile", userProfile.data);
+    },
+  },
+  getters: {
+    // loading status info https://jack72828383883.medium.com/how-to-set-up-a-simple-loading-spinner-in-vue-with-vuex-8afc0ef50363
+    loadingStatus(state) {
+      return state.loadingStatus
     },
   },
   modules: {},
