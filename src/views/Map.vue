@@ -4,7 +4,12 @@
     <h1>Map Page</h1>
     <div>{{ user }}</div>
     <div id="viewDiv"></div>
-    <button type="button" @click.prevent="">Get Magic Key</button>
+    <button v-if="user.sharing" type="button" @click.prevent="unshareMyBin">
+      Stop Sharing My Bin
+    </button>
+    <button v-else type="button" @click.prevent="shareMyBin">
+      Share My Bin
+    </button>
   </div>
 </template>
 
@@ -98,8 +103,13 @@ export default {
     getSharedBins() {
       console.log("getting shared bins");
     },
-    shareMyBin() {
+    async shareMyBin() {
       console.log("sharing bin");
+      // call store to update share status (send user.uid)
+      let user = this.user;
+      user.sharing = true;
+      const response = await this.$store.dispatch("setSharingStatus", user);
+      console.log("response from sharing:", response);
     },
   }, // end methods
   mounted() {

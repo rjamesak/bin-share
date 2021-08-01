@@ -91,9 +91,17 @@ export default new Vuex.Store({
         city: user.city,
         location_x: user.location_x,
         location_y: user.location_y
-      })
+      }, { merge: true })
       console.log('update user response:', response)
       dispatch("getUserProfile", user)
+    },
+    async setSharingStatus({ dispatch }, user) {
+      const response = await fb_users.doc(user.uid).set({
+        sharing: user.sharing
+      }, { merge: true })
+      console.log('in store, attempt to share:', response)
+      dispatch("getUserProfile", user)
+
     },
 
     // GET USER FROM COLLECTION, call commit
