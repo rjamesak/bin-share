@@ -88,7 +88,9 @@ export default new Vuex.Store({
         email: user.email,
         fullName: user.fullName,
         address: user.address,
-        city: user.city
+        city: user.city,
+        location_x: user.location_x,
+        location_y: user.location_y
       })
       console.log('update user response:', response)
       dispatch("getUserProfile", user)

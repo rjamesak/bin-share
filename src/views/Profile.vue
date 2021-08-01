@@ -45,6 +45,7 @@
 <script>
 // @ is an alias to /src
 import navbar from "@/components/navbar.vue";
+import { getSuggestion, getAddressLocation } from "../../services";
 
 export default {
   name: "Profile",
@@ -56,6 +57,8 @@ export default {
         email: null,
         address: null,
         city: null,
+        location_x: null,
+        location_y: null,
       },
     };
   },
@@ -69,6 +72,27 @@ export default {
       });
     },
     async updateProfile() {
+      // get location from address
+      if (this.address !== "") {
+        let magicKey = "";
+        // get magic key from suggestion api
+        try {
+          const returnedKey = await getSuggestion(this.user.address);
+          console.log("magicKey:", magicKey);
+          magicKey = returnedKey;
+        } catch (error) {
+          console.log("error getting magic key:", error);
+        }
+        // get address location from findAddressCandidates
+        try {
+          const location = await getAddressLocation(magicKey);
+          console.log("location:", location);
+          this.form.location_x = location.x;
+          this.form.location_y = location.y;
+        } catch (error) {
+          console.log("error getting location:", error);
+        }
+      }
       //send data to store to update
       let user = this.form;
       user.uid = this.user.uid;

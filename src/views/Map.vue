@@ -4,7 +4,7 @@
     <h1>Map Page</h1>
     <div>{{ user }}</div>
     <div id="viewDiv"></div>
-    <button type="button" @click.prevent="getSuggestion">suggest</button>
+    <button type="button" @click.prevent="">Get Magic Key</button>
   </div>
 </template>
 
@@ -22,6 +22,7 @@ import Directions from "@arcgis/core/widgets/Directions";
 import navbar from "@/components/navbar.vue";
 import Locator from "@arcgis/core/tasks/Locator";
 import * as locator from "@arcgis/core/rest/locator";
+import { getSuggestion, getAddressLocation } from "/services.js";
 
 export default {
   name: "Map",
@@ -36,19 +37,22 @@ export default {
     };
   }, // end data
   methods: {
-    // call to suggest api, get the magic key then forward to the findAddressCandidates API
-    getSuggestion() {
-      console.log("getting suggest");
-      let params = { text: this.user.address };
-      locator
-        .suggestLocations(this.geocodeUrl, params)
-        .then((response) => {
-          console.log(response[0]);
-          this.findAddress(response[0].magicKey);
-        })
-        .catch((error) => {
-          console.log("Error with Suggest:", error);
-        });
+    async getMagicKey() {
+      let magicKey = "";
+      try {
+        const returnedKey = await getSuggestion(this.user.address);
+        console.log("magicKey:", magicKey);
+        magicKey = returnedKey;
+      } catch (error) {
+        console.log("error getting magic key:", error);
+      }
+      // get address location
+      try {
+        const location = await getAddressLocation(magicKey);
+        console.log("location:", location);
+      } catch (error) {
+        console.log("error getting location:", error);
+      }
     },
     searchAddress() {
       console.log("searching address...");
@@ -104,10 +108,6 @@ export default {
     const map = new Map({
       basemap: "arcgis-topographic", // Basemap layer service
     });
-    // create div to put the map in
-    // let viewDiv = document.createElement("div");
-    // viewDiv.id = "viewDiv";
-    // document.querySelector("#content-div").appendChild(viewDiv);
 
     const view = new MapView({
       map: map,
@@ -136,6 +136,16 @@ export default {
 
     this.graphicsLayer = new GraphicsLayer();
     map.add(this.graphicsLayer);
+
+    // create point for user's location
+    let userPoint = {};
+    if (this.user.location_x) {
+      userPoint = {
+        type: "point",
+        longitude: this.user.location_x,
+        latitude: this.user.location_y,
+      };
+    }
 
     // points array
     // const points = [
@@ -168,6 +178,13 @@ export default {
     //   width: "24px",
     //   height: "24px",
     // };
+
+    // add user point to graphic layer
+    const userPointGraphic = new Graphic({
+      geometry: userPoint,
+      symbol: simpleMarkerSymbol,
+    });
+    this.graphicsLayer.add(userPointGraphic);
 
     // loop the points array and
     // add the points to the graphic layer
