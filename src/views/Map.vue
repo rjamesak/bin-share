@@ -105,11 +105,17 @@ export default {
     },
     async shareMyBin() {
       console.log("sharing bin");
-      // call store to update share status (send user.uid)
+      // call store to update share status to true
       let user = this.user;
       user.sharing = true;
       const response = await this.$store.dispatch("setSharingStatus", user);
       console.log("response from sharing:", response);
+    },
+    async unshareMyBin() {
+      let user = this.user;
+      user.sharing = false;
+      const response = await this.$store.dispatch("setSharingStatus", user);
+      console.log("response from unsharing call:", response);
     },
   }, // end methods
   mounted() {
