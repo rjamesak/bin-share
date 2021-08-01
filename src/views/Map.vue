@@ -10,6 +10,7 @@
     <button v-else type="button" @click.prevent="shareMyBin">
       Share My Bin
     </button>
+    <button @click.prevent="getSharedBins">get shared bins</button>
   </div>
 </template>
 
@@ -28,6 +29,7 @@ import navbar from "@/components/navbar.vue";
 import Locator from "@arcgis/core/tasks/Locator";
 import * as locator from "@arcgis/core/rest/locator";
 import { getSuggestion, getAddressLocation } from "/services.js";
+import { fb_db, fb_users } from "../firebase.js";
 
 export default {
   name: "Map",
@@ -102,6 +104,27 @@ export default {
     },
     getSharedBins() {
       console.log("getting shared bins");
+      fb_db
+        .collection("sharedBins")
+        .get()
+        .then((sharedBins) => {
+          sharedBins.forEach((sharedBin) => {
+            const point = {
+              type: "point",
+              longitude: sharedBin.data().location_x,
+              latitude: sharedBin.data().location_y,
+            };
+            const pointGraphic = new Graphic({
+              geometry: point,
+              symbol: this.pictureSymbol,
+            });
+            this.graphicsLayer.add(pointGraphic);
+            console.log("shared Bin:", sharedBin.data());
+          });
+        })
+        .catch((error) => {
+          console.log("error getting shared bins:", error);
+        });
     },
     async shareMyBin() {
       console.log("sharing bin");
@@ -110,12 +133,41 @@ export default {
       user.sharing = true;
       const response = await this.$store.dispatch("setSharingStatus", user);
       console.log("response from sharing:", response);
+      this.addBinToList();
+    },
+    addBinToList() {
+      fb_db
+        .collection("sharedBins")
+        .doc(this.user.uid)
+        .set({
+          location_x: this.user.location_x,
+          location_y: this.user.location_y,
+        })
+        .then((response) => {
+          console.log("add bin to list response:", response);
+        })
+        .catch((error) => {
+          console.log("error adding bin:", error);
+        });
     },
     async unshareMyBin() {
       let user = this.user;
       user.sharing = false;
       const response = await this.$store.dispatch("setSharingStatus", user);
       console.log("response from unsharing call:", response);
+      this.removeBinFromList();
+    },
+    removeBinFromList() {
+      fb_db
+        .collection("sharedBins")
+        .doc(this.user.uid)
+        .delete()
+        .then(() => {
+          console.log("deleted!!");
+        })
+        .catch((error) => {
+          console.log("error deleting:", error);
+        });
     },
   }, // end methods
   mounted() {
@@ -163,22 +215,6 @@ export default {
       };
     }
 
-    // points array
-    // const points = [
-    //   {
-    //     //Create a point
-    //     type: "point",
-    //     longitude: -149.961251,
-    //     latitude: 61.193971,
-    //   },
-    //   {
-    //     //Create a point
-    //     type: "point",
-    //     longitude: -149.963729,
-    //     latitude: 61.194617,
-    //   },
-    // ]; // end points array
-
     const simpleMarkerSymbol = {
       type: "simple-marker",
       color: [226, 119, 40], // Orange
@@ -188,12 +224,12 @@ export default {
       },
     };
     // picture marker symbol
-    // let pictureSymbol = {
-    //   type: "picture-marker", // autocasts as new PictureMarkerSymbol()
-    //   url: "https://raw.githubusercontent.com/rjamesak/assets/master/trash-can.svg",
-    //   width: "24px",
-    //   height: "24px",
-    // };
+    this.pictureSymbol = {
+      type: "picture-marker", // autocasts as new PictureMarkerSymbol()
+      url: "https://raw.githubusercontent.com/rjamesak/assets/master/trash-can.svg",
+      width: "24px",
+      height: "24px",
+    };
 
     // add user point to graphic layer
     const userPointGraphic = new Graphic({
@@ -201,16 +237,6 @@ export default {
       symbol: simpleMarkerSymbol,
     });
     this.graphicsLayer.add(userPointGraphic);
-
-    // loop the points array and
-    // add the points to the graphic layer
-    // points.forEach((point) => {
-    //   const pointGraphic = new Graphic({
-    //     geometry: point,
-    //     symbol: pictureSymbol,
-    //   });
-    //   graphicsLayer.add(pointGraphic);
-    // });
 
     const locate = new Locate({
       view: view,

@@ -101,7 +101,6 @@ export default new Vuex.Store({
       }, { merge: true })
       console.log('in store, attempt to share:', response)
       dispatch("getUserProfile", user)
-
     },
 
     // GET USER FROM COLLECTION, call commit
