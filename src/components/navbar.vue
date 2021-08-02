@@ -4,7 +4,8 @@
     <router-link :to="{ name: 'About' }">About</router-link> |
     <router-link :to="{ name: 'Signup' }">Signup</router-link> |
     <router-link :to="{ name: 'Profile' }">Profile</router-link> |
-    <router-link :to="{ name: 'Map' }">Map</router-link>
+    <router-link :to="{ name: 'Map' }">Map</router-link> |
+    <router-link :to="{ name: 'List' }">List</router-link>
   </div>
 </template>
 
