@@ -23,6 +23,7 @@ import MapView from "@arcgis/core/views/MapView";
 import Graphic from "@arcgis/core/Graphic";
 import Locate from "@arcgis/core/widgets/Locate";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import Search from "@arcgis/core/widgets/Search";
 import Directions from "@arcgis/core/widgets/Directions";
 import navbar from "@/components/navbar.vue";
@@ -41,6 +42,11 @@ export default {
       geocodeUrl:
         "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
       graphicsLayer: {},
+      binsLayer: new FeatureLayer({
+        source: [],
+        objectIdField: "ObjectID",
+        geometryType: "point",
+      }),
     };
   }, // end data
   methods: {
@@ -119,8 +125,38 @@ export default {
               symbol: this.pictureSymbol,
             });
             this.graphicsLayer.add(pointGraphic);
-            console.log("shared Bin:", sharedBin.data());
+            console.log("sharedBin ID:", sharedBin.id);
+            console.log("sharedBin.data():", sharedBin.data());
           });
+        })
+        .catch((error) => {
+          console.log("error getting shared bins:", error);
+        });
+    },
+    getSharedBinsWIP() {
+      let features = [];
+      console.log("getting shared bins");
+      fb_db
+        .collection("sharedBins")
+        .get()
+        .then((sharedBins) => {
+          sharedBins.forEach((sharedBin) => {
+            const feature = {
+              geometry: {
+                type: "point",
+                longitude: sharedBin.data().location_x,
+                latitude: sharedBin.data().location_y,
+              },
+              attributes: {
+                ObjectID: sharedBin.id,
+              },
+            };
+            console.log("sharedBin ID:", sharedBin.id);
+            console.log("sharedBin.data():", sharedBin.data());
+            // add feature to features array
+            features.push(feature);
+          }); // end forEach
+          // add features array to the feature layer
         })
         .catch((error) => {
           console.log("error getting shared bins:", error);
