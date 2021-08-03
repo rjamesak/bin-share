@@ -10,11 +10,6 @@
     <button v-else type="button" @click.prevent="shareMyBin">
       Share My Bin
     </button>
-    <button @click.prevent="getSharedBins">get shared bins</button>
-    <button @click.prevent="getSharedBinsWIP">get shared bins WIP</button>
-    <button @click.prevent="getSharedBinsFromUsers">
-      get shared bins from users
-    </button>
     <button @click.prevent="deleteAllFromFeatureLayer">
       delete from feature layer
     </button>
@@ -51,6 +46,7 @@ export default {
         "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
       graphicsLayer: {},
       binsLayer: new FeatureLayer({
+        title: "Shared Bins",
         source: [],
         objectIdField: "ObjectID",
         fields: [
@@ -160,36 +156,11 @@ export default {
           console.log("error getting location:", error);
         });
     },
-    getSharedBins() {
-      console.log("getting shared bins");
-      fb_db
-        .collection("sharedBins")
-        .get()
-        .then((sharedBins) => {
-          sharedBins.forEach((sharedBin) => {
-            const point = {
-              type: "point",
-              longitude: sharedBin.data().location_x,
-              latitude: sharedBin.data().location_y,
-            };
-            const pointGraphic = new Graphic({
-              geometry: point,
-              symbol: this.pictureSymbol,
-            });
-            this.graphicsLayer.add(pointGraphic);
-            console.log("sharedBin ID:", sharedBin.id);
-            console.log("sharedBin.data():", sharedBin.data());
-          });
-        })
-        .catch((error) => {
-          console.log("error getting shared bins:", error);
-        });
-    },
     // this queries the users collection to get data
     // for each user who is sharing and adds the
     // lat/long to a point feature, then adds the user's
     // address to attribute data
-    getSharedBinsFromUsers() {
+    getSharedBins() {
       console.log("getting shared bins from users");
       let features = [];
       // move this fb call to external function
@@ -229,6 +200,7 @@ export default {
           console.log("error getting shared bins:", error);
         });
     },
+    // old, remove
     getSharedBinsWIP() {
       // maybe todo: remove current feature layer if exists
       let features = [];
@@ -278,6 +250,8 @@ export default {
       const response = await this.$store.dispatch("setSharingStatus", user);
       console.log("response from sharing:", response);
       this.addBinToList();
+      // add bin to feature layer
+      this.addUserBinToFeatureLayer();
     },
     addBinToList() {
       fb_db
@@ -301,6 +275,7 @@ export default {
       console.log("response from unsharing call:", response);
       this.removeBinFromList();
       // remove from the featureLayer
+      this.deleteUserBinFromFeatureLayer();
     },
     removeFromFeatureLayer(featureID) {
       // query feature layer view https://developers.arcgis.com/javascript/latest/sample-code/featurelayerview-query/
@@ -328,12 +303,6 @@ export default {
           objectId: feature.attributes.ObjectID,
         });
       });
-      // this.binsLayer.queryFeatures().then((results) => {
-      //   console.log("query feature results:", results);
-      //   pointsToDelete.deleteFeatures = results.features.map((feature) => {
-      //     feature.attributes;
-      //   });
-      // });
       console.log("points to delete:", pointsToDelete);
 
       // apply the edits (points to be deleted) to the feature layer
@@ -346,6 +315,55 @@ export default {
         .catch((error) => {
           console.log("error deleting:", error);
         });
+    },
+    // for removing the user's shared bin from the feature layer
+    async deleteUserBinFromFeatureLayer() {
+      let id = this.user.uid;
+      let query = this.binsLayer.createQuery();
+      query.where = `binID = '${id}'`;
+      console.log("query.where:", query.where);
+      let results = await this.binsLayer.queryFeatures(query);
+      console.log("query results:", results);
+      let pointToDelete = {
+        deleteFeatures: results.features,
+      };
+      console.log("pointToDelete:", pointToDelete);
+      this.updateFeatureLayer(pointToDelete);
+    },
+    // updates a feature layer by calling the applyEdits function
+    // receives graphic object
+    // {addFeatures: [{}], deleteFeatures: [{}]}
+    updateFeatureLayer(points) {
+      console.log("in update Feature layer, points:", points);
+      this.binsLayer
+        .applyEdits(points)
+        .then((results) => {
+          console.log("deleted points:", results.deleteFeatureResults);
+          console.log("added points:", results.addFeatureResults);
+        })
+        .catch((error) => {
+          console.log("error deleting:", error);
+        });
+    },
+    addUserBinToFeatureLayer() {
+      // create the graphic
+      let point = {
+        geometry: {
+          type: "point",
+          longitude: this.user.location_x,
+          latitude: this.user.location_y,
+        },
+        attributes: {
+          binID: this.user.uid,
+          address: this.user.address,
+        },
+      };
+      let pointToAdd = {
+        addFeatures: [point],
+      };
+      console.log("point graphic to add", pointToAdd);
+
+      this.updateFeatureLayer(pointToAdd);
     },
   }, // end methods
   mounted() {
@@ -425,6 +443,9 @@ export default {
       },
     });
     this.view.ui.add(locate, "top-left");
+
+    // get the shared bins and add them to the feature layer
+    this.getSharedBins();
   }, // end mounted
   computed: {
     user() {
