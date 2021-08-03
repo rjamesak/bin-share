@@ -15,6 +15,9 @@
     <button @click.prevent="getSharedBinsFromUsers">
       get shared bins from users
     </button>
+    <button @click.prevent="deleteAllFromFeatureLayer">
+      delete from feature layer
+    </button>
   </div>
 </template>
 
@@ -182,9 +185,13 @@ export default {
           console.log("error getting shared bins:", error);
         });
     },
+    // this queries the users collection to get data
+    // for each user who is sharing and adds the
+    // lat/long to a point feature, then adds the user's
+    // address to attribute data
     getSharedBinsFromUsers() {
-      let features = [];
       console.log("getting shared bins from users");
+      let features = [];
       // move this fb call to external function
       fb_db
         .collection("users")
@@ -223,6 +230,7 @@ export default {
         });
     },
     getSharedBinsWIP() {
+      // maybe todo: remove current feature layer if exists
       let features = [];
       console.log("getting shared bins");
       // move this fb call to external function
@@ -251,7 +259,6 @@ export default {
           // add features array to the feature layer
           console.log("features:", features);
           // get feature layer
-          // let binsLayer = this.makeFeatureLayer();
           // console.log("bins layer:", binsLayer);
           this.binsLayer.source = features;
           // add renderer to the feature layer
@@ -293,6 +300,11 @@ export default {
       const response = await this.$store.dispatch("setSharingStatus", user);
       console.log("response from unsharing call:", response);
       this.removeBinFromList();
+      // remove from the featureLayer
+    },
+    removeFromFeatureLayer(featureID) {
+      // query feature layer view https://developers.arcgis.com/javascript/latest/sample-code/featurelayerview-query/
+      console.log("the view:", this.view);
     },
     removeBinFromList() {
       fb_db
@@ -306,23 +318,34 @@ export default {
           console.log("error deleting:", error);
         });
     },
-    makeFeatureLayer() {
-      let featLayer = new FeatureLayer({
-        source: [],
-        objectIdField: "ObjectID",
-        fields: [
-          {
-            name: "ObjectID",
-            type: "oid",
-          },
-          {
-            name: "binID",
-            type: "string",
-          },
-        ],
-        geometryType: "point",
+    async deleteAllFromFeatureLayer() {
+      let pointsToDelete = { deleteFeatures: [] };
+      // get the points in the layer that will be deleted
+      let results = await this.binsLayer.queryFeatures();
+      console.log("results:", results);
+      results.features.forEach((feature) => {
+        pointsToDelete.deleteFeatures.push({
+          objectId: feature.attributes.ObjectID,
+        });
       });
-      return featLayer;
+      // this.binsLayer.queryFeatures().then((results) => {
+      //   console.log("query feature results:", results);
+      //   pointsToDelete.deleteFeatures = results.features.map((feature) => {
+      //     feature.attributes;
+      //   });
+      // });
+      console.log("points to delete:", pointsToDelete);
+
+      // apply the edits (points to be deleted) to the feature layer
+      this.binsLayer
+        .applyEdits(pointsToDelete)
+        .then((results) => {
+          console.log("results from delete request:", results);
+          console.log("points deleted:", results.deleteFeatureResults);
+        })
+        .catch((error) => {
+          console.log("error deleting:", error);
+        });
     },
   }, // end methods
   mounted() {
@@ -332,7 +355,7 @@ export default {
       basemap: "arcgis-topographic", // Basemap layer service
     });
 
-    const view = new MapView({
+    this.view = new MapView({
       map: this.map,
       center: [-149.961251, 61.193971], // Longitude, latitude
       zoom: 16, // Zoom level
@@ -341,9 +364,9 @@ export default {
 
     // SEARCH
     const search = new Search({
-      view: view,
+      view: this.view,
     }); // end search
-    view.ui.add(search, "top-right");
+    this.view.ui.add(search, "top-right");
     search.on("search-complete", (event) => {
       console.log("search results:", event);
     });
@@ -394,14 +417,14 @@ export default {
     this.graphicsLayer.add(userPointGraphic);
 
     const locate = new Locate({
-      view: view,
+      view: this.view,
       useHeadingEnabled: false,
       goToOverride: function (view, options) {
         options.target.scale = 1500;
         return view.goTo(options.target);
       },
     });
-    view.ui.add(locate, "top-left");
+    this.view.ui.add(locate, "top-left");
   }, // end mounted
   computed: {
     user() {
