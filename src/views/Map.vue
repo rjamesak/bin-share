@@ -12,6 +12,9 @@
     </button>
     <button @click.prevent="getSharedBins">get shared bins</button>
     <button @click.prevent="getSharedBinsWIP">get shared bins WIP</button>
+    <button @click.prevent="getSharedBinsFromUsers">
+      get shared bins from users
+    </button>
   </div>
 </template>
 
@@ -44,6 +47,46 @@ export default {
       geocodeUrl:
         "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
       graphicsLayer: {},
+      binsLayer: new FeatureLayer({
+        source: [],
+        objectIdField: "ObjectID",
+        fields: [
+          {
+            name: "ObjectID",
+            type: "oid",
+          },
+          {
+            name: "binID",
+            type: "string",
+          },
+          {
+            name: "address",
+            type: "string",
+          },
+        ],
+        geometryType: "point",
+        popupEnabled: true,
+        popupTemplate: {
+          // ultimately want this to be the address
+          title: "Available Bin",
+          defaultPopupTemplateEnabled: true,
+          content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                // add the fields to display
+                {
+                  fieldName: "address",
+                  label: "Address:",
+                },
+              ],
+            },
+          ],
+          // put the fields here that should be displayed
+          outFields: ["address"],
+        },
+      }),
+
       binRenderer: new SimpleRenderer({
         type: "simple",
         symbol: {
@@ -139,6 +182,46 @@ export default {
           console.log("error getting shared bins:", error);
         });
     },
+    getSharedBinsFromUsers() {
+      let features = [];
+      console.log("getting shared bins from users");
+      // move this fb call to external function
+      fb_db
+        .collection("users")
+        .where("sharing", "==", true)
+        .get()
+        .then((users) => {
+          users.forEach((user) => {
+            // get the bin data and create a point for it
+            const feature = {
+              geometry: {
+                type: "point",
+                longitude: user.data().location_x,
+                latitude: user.data().location_y,
+              },
+              attributes: {
+                // ObjectID: user.id, // this is not working
+                binID: user.id,
+                address: user.data().address,
+              },
+            };
+            console.log("sharedBin ID:", user.id);
+            console.log("user.data():", user.data());
+            // add feature to features array
+            features.push(feature);
+          }); // end forEach
+          // add features array to the feature layer
+          console.log("features:", features);
+          this.binsLayer.source = features;
+          // add renderer to the feature layer
+          this.binsLayer.renderer = this.binRenderer;
+          // add feature layer to the map
+          this.map.add(this.binsLayer);
+        })
+        .catch((error) => {
+          console.log("error getting shared bins:", error);
+        });
+    },
     getSharedBinsWIP() {
       let features = [];
       console.log("getting shared bins");
@@ -168,13 +251,13 @@ export default {
           // add features array to the feature layer
           console.log("features:", features);
           // get feature layer
-          let binsLayer = this.makeFeatureLayer();
-          console.log("bins layer:", binsLayer);
-          binsLayer.source = features;
+          // let binsLayer = this.makeFeatureLayer();
+          // console.log("bins layer:", binsLayer);
+          this.binsLayer.source = features;
           // add renderer to the feature layer
-          binsLayer.renderer = this.binRenderer;
+          this.binsLayer.renderer = this.binRenderer;
           // add feature layer to the map
-          this.map.add(binsLayer);
+          this.map.add(this.binsLayer);
         })
         .catch((error) => {
           console.log("error getting shared bins:", error);
