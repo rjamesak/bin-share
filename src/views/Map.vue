@@ -11,6 +11,7 @@
       Share My Bin
     </button>
     <button @click.prevent="getSharedBins">get shared bins</button>
+    <button @click.prevent="getSharedBinsWIP">get shared bins WIP</button>
   </div>
 </template>
 
@@ -28,6 +29,7 @@ import Search from "@arcgis/core/widgets/Search";
 import Directions from "@arcgis/core/widgets/Directions";
 import navbar from "@/components/navbar.vue";
 import Locator from "@arcgis/core/tasks/Locator";
+import SimpleRenderer from "@arcgis/core/renderers/SimpleRenderer";
 import * as locator from "@arcgis/core/rest/locator";
 import { getSuggestion, getAddressLocation } from "/services.js";
 import { fb_db, fb_users } from "../firebase.js";
@@ -42,10 +44,14 @@ export default {
       geocodeUrl:
         "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
       graphicsLayer: {},
-      binsLayer: new FeatureLayer({
-        source: [],
-        objectIdField: "ObjectID",
-        geometryType: "point",
+      binRenderer: new SimpleRenderer({
+        type: "simple",
+        symbol: {
+          type: "picture-marker", // autocasts as new PictureMarkerSymbol()
+          url: "https://raw.githubusercontent.com/rjamesak/assets/master/trash-can.svg",
+          width: "24px",
+          height: "24px",
+        },
       }),
     };
   }, // end data
@@ -136,11 +142,13 @@ export default {
     getSharedBinsWIP() {
       let features = [];
       console.log("getting shared bins");
+      // move this fb call to external function
       fb_db
         .collection("sharedBins")
         .get()
         .then((sharedBins) => {
           sharedBins.forEach((sharedBin) => {
+            // get the bin data and create a point for it
             const feature = {
               geometry: {
                 type: "point",
@@ -148,7 +156,8 @@ export default {
                 latitude: sharedBin.data().location_y,
               },
               attributes: {
-                ObjectID: sharedBin.id,
+                ObjectID: sharedBin.id, // this is not working
+                binID: sharedBin.id,
               },
             };
             console.log("sharedBin ID:", sharedBin.id);
@@ -157,6 +166,15 @@ export default {
             features.push(feature);
           }); // end forEach
           // add features array to the feature layer
+          console.log("features:", features);
+          // get feature layer
+          let binsLayer = this.makeFeatureLayer();
+          console.log("bins layer:", binsLayer);
+          binsLayer.source = features;
+          // add renderer to the feature layer
+          binsLayer.renderer = this.binRenderer;
+          // add feature layer to the map
+          this.map.add(binsLayer);
         })
         .catch((error) => {
           console.log("error getting shared bins:", error);
@@ -205,16 +223,34 @@ export default {
           console.log("error deleting:", error);
         });
     },
+    makeFeatureLayer() {
+      let featLayer = new FeatureLayer({
+        source: [],
+        objectIdField: "ObjectID",
+        fields: [
+          {
+            name: "ObjectID",
+            type: "oid",
+          },
+          {
+            name: "binID",
+            type: "string",
+          },
+        ],
+        geometryType: "point",
+      });
+      return featLayer;
+    },
   }, // end methods
   mounted() {
     config.apiKey = this.apiKey;
 
-    const map = new Map({
+    this.map = new Map({
       basemap: "arcgis-topographic", // Basemap layer service
     });
 
     const view = new MapView({
-      map: map,
+      map: this.map,
       center: [-149.961251, 61.193971], // Longitude, latitude
       zoom: 16, // Zoom level
       container: "viewDiv", // Div element
@@ -239,7 +275,7 @@ export default {
     // });
 
     this.graphicsLayer = new GraphicsLayer();
-    map.add(this.graphicsLayer);
+    this.map.add(this.graphicsLayer);
 
     // create point for user's location
     let userPoint = {};
