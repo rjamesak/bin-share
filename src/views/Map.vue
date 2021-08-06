@@ -10,9 +10,9 @@
     <button v-else type="button" @click.prevent="shareMyBin">
       Share My Bin
     </button>
-    <button @click.prevent="deleteAllFromFeatureLayer">
+    <!-- <button @click.prevent="deleteAllFromFeatureLayer">
       delete from feature layer
-    </button>
+    </button> -->
   </div>
 </template>
 
