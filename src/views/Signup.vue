@@ -33,9 +33,15 @@ export default {
     };
   },
   methods: {
-    submit(form) {
+    async submit(form) {
       console.log("submitting");
-      this.$store.dispatch("createNewUser", this.form);
+      try {
+        await this.$store.dispatch("createNewUser", this.form);
+        alert("success");
+        this.$router.push({ name: "Login" });
+      } catch (error) {
+        console.log("error:", error);
+      }
     },
   },
 };
