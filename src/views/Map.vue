@@ -375,7 +375,7 @@ export default {
 
     this.view = new MapView({
       map: this.map,
-      center: [-149.961251, 61.193971], // Longitude, latitude
+      center: [this.user.location_x, this.user.location_y], // Longitude, latitude
       zoom: 16, // Zoom level
       container: "viewDiv", // Div element
     }); // end view

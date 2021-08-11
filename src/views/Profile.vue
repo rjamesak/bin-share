@@ -77,7 +77,7 @@ export default {
         let magicKey = "";
         // get magic key from suggestion api
         try {
-          const returnedKey = await getSuggestion(this.user.address);
+          const returnedKey = await getSuggestion(this.form.address);
           console.log("magicKey:", magicKey);
           magicKey = returnedKey;
         } catch (error) {
