@@ -48,4 +48,12 @@ const getCurrentUser = () => {
     });
 };
 
-export { fb_db, fb_auth, fb_users, getCurrentUser };
+const getSharedBins = async () => {
+    return await
+        fb_db
+            .collection("users")
+            .where("sharing", "==", true)
+            .get()
+}
+
+export { fb_db, fb_auth, fb_users, getCurrentUser, getSharedBins };
