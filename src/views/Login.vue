@@ -5,7 +5,10 @@
     </div>
     <div v-else class="content-div">
       <navbar />
-      <img alt="Vue logo" src="../assets/logo.png" />
+      <h1>Bin Share!</h1>
+
+      <router-link :to="{ name: 'About' }">About Bin Share</router-link> <br />
+      <img class="world-logo" src="@/assets/travel_explore_black_24dp.svg" />
       <form @submit.prevent="submit" class="form-items">
         <label for="email-input">Email</label>
         <input
@@ -48,7 +51,6 @@ export default {
   },
   methods: {
     async submit(form) {
-      console.log("submitting!!");
       console.log("store loadingStatus:", this.$store.getters.loadingStatus);
       await this.$store.dispatch("login", this.form);
       this.$router.push({ name: "Profile" });
@@ -62,3 +64,9 @@ export default {
   },
 };
 </script>
+<style lang="scss" scoped>
+.world-logo {
+  width: 120px;
+  height: 120px;
+}
+</style>

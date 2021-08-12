@@ -7,11 +7,9 @@
       :key="availableBin.id"
       class="bin-list"
     >
-      <div>address: {{ availableBin.address }}</div>
-      <div>id: {{ availableBin.id }}</div>
-      <div class="longitude">x: {{ availableBin.location_x }}</div>
-      <div class="latitude">y: {{ availableBin.location_y }}</div>
-      <button type="button" @click.prevent="getDirections(index)">
+      <div>Address: {{ availableBin.address }}</div>
+      <div v-for="direction in availableBin.directions">{{ direction }}</div>
+      <button type="button" @click.prevent="getDirections($event, index)">
         Go Here!
       </button>
     </div>
@@ -41,6 +39,7 @@ export default {
         let curBin = {
           address: sharedBin.data().address,
           id: sharedBin.id,
+          directions: [],
           location_x: sharedBin.data().location_x,
           location_y: sharedBin.data().location_y,
         };
@@ -50,7 +49,8 @@ export default {
         console.log("sharedBin.data():", sharedBin.data());
       });
     },
-    async getDirections(index) {
+    async getDirections(event, index) {
+      if (this.availableBins[index].directions.length > 0) return;
       // get the lat/long of the clicked box
       let endLat = this.availableBins[index].location_y;
       let endLong = this.availableBins[index].location_x;
@@ -64,8 +64,18 @@ export default {
       let parser = new DOMParser();
       let xmlDoc = parser.parseFromString(response.data, "text/xml");
       let instructions = xmlDoc.querySelectorAll("Instruction");
-      instructions.forEach((instruction) => {
+      instructions.forEach((instruction, dirIndex) => {
         console.log(instruction.textContent);
+        this.availableBins[index].directions.push(instruction.textContent);
+      });
+      console.log(event.target.parentNode);
+      // this.addDirectionsToDom(event.target.parentNode, instructions);
+    },
+    addDirectionsToDom(element, directions) {
+      directions.forEach((direction, index) => {
+        let newDiv = document.createElement("div");
+        newDiv.textContent = direction.textContent;
+        element.appendChild(newDiv);
       });
     },
   }, // end methods
@@ -87,5 +97,9 @@ export default {
   flex-direction: column;
   margin: 10px;
   outline: thin solid black;
+}
+button {
+  max-width: 300px;
+  margin: auto;
 }
 </style>

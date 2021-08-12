@@ -2,6 +2,8 @@
   <div class="profile">
     <navbar />
     <h1>Profile Page</h1>
+    <img class="profile-image" src="@/assets/account_circle_black_24dp.svg" />
+    <p>Please enter all information (form validation is coming soon)</p>
     <form @submit.prevent="updateProfile" id="profile-form" class="form-items">
       <label for="email-input">Email:</label>
       <input
@@ -38,7 +40,7 @@
       <button type="submit">Update Information</button>
     </form>
 
-    <a href="" @click.prevent="signout">signout</a>
+    <a href="" @click.prevent="signout">Sign me out</a>
   </div>
 </template>
 
@@ -107,3 +109,9 @@ export default {
   },
 };
 </script>
+<style lang="scss">
+.profile-image {
+  height: 120px;
+  width: 120px;
+}
+</style>

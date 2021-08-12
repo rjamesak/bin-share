@@ -2,7 +2,7 @@
   <div id="content-div" class="Map">
     <navbar />
     <h1>Map Page</h1>
-    <div>{{ user }}</div>
+    <!-- <div>{{ user }}</div> -->
     <div id="viewDiv"></div>
     <button v-if="user.sharing" type="button" @click.prevent="unshareMyBin">
       Stop Sharing My Bin
@@ -10,9 +10,6 @@
     <button v-else type="button" @click.prevent="shareMyBin">
       Share My Bin
     </button>
-    <!-- <button @click.prevent="deleteAllFromFeatureLayer">
-      delete from feature layer
-    </button> -->
   </div>
 </template>
 
@@ -26,11 +23,16 @@ import Graphic from "@arcgis/core/Graphic";
 import Locate from "@arcgis/core/widgets/Locate";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
+import FeatureSet from "@arcgis/core/rest/support/FeatureSet";
 import Search from "@arcgis/core/widgets/Search";
 import Directions from "@arcgis/core/widgets/Directions";
+import LayerList from "@arcgis/core/widgets/LayerList";
+// import FeatureTable from "@arcgis/core/widgets/FeatureTable";
+// import Legend from "@arcgis/core/widgets/Legend";
 import navbar from "@/components/navbar.vue";
 import Locator from "@arcgis/core/tasks/Locator";
 import SimpleRenderer from "@arcgis/core/renderers/SimpleRenderer";
+import * as route from "@arcgis/core/rest/route";
 import * as locator from "@arcgis/core/rest/locator";
 import { getSuggestion, getAddressLocation } from "/services.js";
 import { fb_db, fb_users } from "../firebase.js";
@@ -44,6 +46,8 @@ export default {
         "AAPKa09ed67007b84a9a8cd572139da0a689O0dITAAlfUUMdMrMSBgatyDl2TipCPnZDJvzAsB6V-i4OjcVl_TAgvueLx5DqiwM",
       geocodeUrl:
         "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+      routeUrl:
+        "https://route-api.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World",
       graphicsLayer: {},
       binsLayer: new FeatureLayer({
         title: "Shared Bins",
@@ -365,6 +369,103 @@ export default {
 
       this.updateFeatureLayer(pointToAdd);
     },
+    makeLayerListWidget() {
+      this.view.when(() => {
+        let layerList = new LayerList({
+          view: this.view,
+        });
+        this.view.ui.add(layerList, "bottom-left");
+      });
+    },
+    makeLegendWidget() {
+      let legend = new Legend({
+        view: this.view,
+        layerInfos: [
+          {
+            layer: this.binsLayer,
+            // title: "Shared Bins",
+          },
+        ],
+      });
+      this.view.ui.add(legend, "bottom-left");
+    },
+    addFeatureTable() {
+      let featureTable = new FeatureTable({
+        view: this.view,
+        layer: this.binsLayer,
+        container: "table-container",
+      });
+    },
+    async getRoute(event) {
+      // Symbols
+      const simpleMarkerSymbol = {
+        type: "simple-marker",
+        color: [200, 100, 20], // Orange
+        outline: {
+          color: [255, 255, 255], // White
+          width: 1,
+        },
+      };
+
+      let routeSymbol = {
+        type: "simple-line",
+        color: [0, 0, 255, 0.5],
+        width: 5,
+      };
+
+      let userGeometry = {
+        type: "point",
+        longitude: this.user.location_x,
+        latitude: this.user.location_y,
+      };
+
+      const userPointGraphic = new Graphic({
+        geometry: userGeometry,
+        symbol: simpleMarkerSymbol,
+      });
+
+      let clickedPointGraphic = new Graphic({
+        geometry: event.mapPoint,
+        symbol: simpleMarkerSymbol,
+      });
+
+      // add point graphics to the graphics layer
+      let routeLayer = new GraphicsLayer();
+      routeLayer.add(userPointGraphic);
+      routeLayer.add(clickedPointGraphic);
+
+      console.log("before route params");
+      const routeParams = {
+        apiKey: this.apiKey,
+        stops: new FeatureSet({
+          features: [],
+        }),
+      };
+
+      // push the points to the route params stops
+      routeParams.stops.features.push(userPointGraphic);
+      routeParams.stops.features.push(clickedPointGraphic);
+      console.log("routeParams:", routeParams);
+
+      // solve the route
+      route
+        .solve(this.routeUrl, routeParams)
+        .then((data) => {
+          console.log("data:", data);
+        })
+        .catch((error) => {
+          console.log("error solving:", error);
+        });
+      // try {
+      //   let routeResults = await route.solve(this.routeUrl, routeParams);
+      // } catch (error) {
+      //   console.log("error getting route:", error);
+      // }
+      // // show the route
+      // let calculatedRoute = routeResults.data.routeResults[0].route;
+      // calculatedRoute.symbol = routeSymbol;
+      // routeLayer.add(calculatedRoute);
+    },
   }, // end methods
   mounted() {
     config.apiKey = this.apiKey;
@@ -388,15 +489,6 @@ export default {
     search.on("search-complete", (event) => {
       console.log("search results:", event);
     });
-
-    // // DIRECTIONS
-    // const directionsWidget = new Directions({
-    //   view: view,
-    // });
-    // view.ui.add(directionsWidget, {
-    //   position: "bottom-left",
-    //   index: 2,
-    // });
 
     this.graphicsLayer = new GraphicsLayer();
     this.map.add(this.graphicsLayer);
@@ -446,6 +538,8 @@ export default {
 
     // get the shared bins and add them to the feature layer
     this.getSharedBins();
+
+    this.view.on("click", this.getRoute);
   }, // end mounted
   computed: {
     user() {
@@ -460,8 +554,9 @@ export default {
 
 #viewDiv {
   padding: 0;
-  margin: 0;
-  height: 95vh;
-  width: 95vw;
+  margin: auto;
+  height: 90vh;
+  width: 90vw;
+  align-self: center;
 }
 </style>
