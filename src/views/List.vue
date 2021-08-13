@@ -1,7 +1,7 @@
 <template>
   <div class="List">
     <navbar />
-    <h1>List Page</h1>
+    <h1>Available Trash Bins</h1>
     <div
       v-for="(availableBin, index) in availableBins"
       :key="availableBin.id"

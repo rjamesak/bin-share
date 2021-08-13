@@ -82,6 +82,7 @@ export default new Vuex.Store({
 
     // UPDATE USER PROFILE
     async updateUserProfile({ dispatch }, user) {
+      this.state.loadingStatus = true
       console.log("update user in store:", user)
       // update the collection
       const response = await fb_users.doc(user.uid).set({
