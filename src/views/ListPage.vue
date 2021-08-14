@@ -1,22 +1,29 @@
 <template>
   <div class="List">
-    <navbar />
-    <h1>Available Trash Bins</h1>
-    <div class="list-container">
-      <div
-        v-for="(availableBin, index) in availableBins"
-        :key="availableBin.id"
-        class="bin-list"
-      >
-        <div>Address: {{ availableBin.address }}</div>
-        <div v-for="direction in availableBin.directions">{{ direction }}</div>
-        <button
-          class="submit-button"
-          type="button"
-          @click.prevent="getDirections($event, index)"
+    <div v-if="isLoading">
+      <p>getting directions...</p>
+    </div>
+    <div v-else>
+      <navbar />
+      <h1>Available Trash Bins</h1>
+      <div class="list-container">
+        <div
+          v-for="(availableBin, index) in availableBins"
+          :key="availableBin.id"
+          class="bin-list"
         >
-          Go Here!
-        </button>
+          <div>Address: {{ availableBin.address }}</div>
+          <div v-for="direction in availableBin.directions">
+            {{ direction }}
+          </div>
+          <button
+            class="submit-button"
+            type="button"
+            @click.prevent="getDirections($event, index)"
+          >
+            Go Here!
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -36,6 +43,7 @@ export default {
   data() {
     return {
       availableBins: [],
+      isLoading: false,
     };
   },
   methods: {
@@ -57,6 +65,7 @@ export default {
     },
     async getDirections(event, index) {
       if (this.availableBins[index].directions.length > 0) return;
+      this.isLoading = true;
       // get the lat/long of the clicked box
       let endLat = this.availableBins[index].location_y;
       let endLong = this.availableBins[index].location_x;
@@ -75,6 +84,7 @@ export default {
         this.availableBins[index].directions.push(instruction.textContent);
       });
       console.log(event.target.parentNode);
+      this.isLoading = false;
       // this.addDirectionsToDom(event.target.parentNode, instructions);
     },
     addDirectionsToDom(element, directions) {

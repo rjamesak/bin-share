@@ -169,7 +169,6 @@ export default {
       let user = this.user;
       user.sharing = true;
       const response = await this.$store.dispatch("setSharingStatus", user);
-      console.log("response from sharing:", response);
       this.addBinToList();
       // add bin to feature layer
       this.addUserBinToFeatureLayer();
