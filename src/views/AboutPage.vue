@@ -29,6 +29,9 @@
         />
         marker.
       </li>
+      <li>
+        Don't worry about sharing your bin, you can stop sharing it at any time!
+      </li>
     </ol>
     <ol>
       How to share your bin:

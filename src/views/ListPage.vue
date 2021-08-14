@@ -29,7 +29,7 @@ import { fb_db, getSharedBins } from "../firebase.js";
 import axios from "axios";
 
 export default {
-  name: "List",
+  name: "ListPage",
   components: {
     navbar,
   },

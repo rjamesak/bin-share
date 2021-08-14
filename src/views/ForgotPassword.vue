@@ -8,7 +8,7 @@
 // @ is an alias to /src
 
 export default {
-  name: "Forgot-Password",
+  name: "ForgotPassword",
   components: {},
 };
 </script>

@@ -36,7 +36,7 @@ import navbar from "@/components/navbar.vue";
 import Spinner from "vue-simple-spinner";
 
 export default {
-  name: "Login",
+  name: "LoginPage",
   components: {
     navbar,
     vueSpinner: Spinner,

@@ -8,7 +8,7 @@
 // @ is an alias to /src
 
 export default {
-  name: "Delete-Account",
+  name: "DeleteAccount",
   components: {},
 };
 </script>

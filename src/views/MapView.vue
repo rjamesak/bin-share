@@ -2,7 +2,6 @@
   <div id="content-div" class="Map">
     <navbar />
     <h1>Map Page</h1>
-    <!-- <div>{{ user }}</div> -->
     <div id="viewDiv"></div>
     <div class="button-container">
       <button
@@ -45,10 +44,10 @@ import SimpleRenderer from "@arcgis/core/renderers/SimpleRenderer";
 import * as route from "@arcgis/core/rest/route";
 import * as locator from "@arcgis/core/rest/locator";
 import { getSuggestion, getAddressLocation } from "/services.js";
-import { fb_db, fb_users } from "../firebase.js";
+import { fb_db, fb_users, getSharedBins } from "../firebase.js";
 
 export default {
-  name: "Map",
+  name: "MapView",
   components: { navbar },
   data() {
     return {
@@ -80,7 +79,6 @@ export default {
         geometryType: "point",
         popupEnabled: true,
         popupTemplate: {
-          // ultimately want this to be the address
           title: "Available Bin",
           defaultPopupTemplateEnabled: true,
           content: [
@@ -121,7 +119,6 @@ export default {
       } catch (error) {
         console.log("error getting magic key:", error);
       }
-      // get address location
       try {
         const location = await getAddressLocation(magicKey);
         console.log("location:", location);
@@ -139,122 +136,32 @@ export default {
           console.log("search error:", error);
         });
     },
-    findAddress(magicKeyIn) {
-      let params = {
-        magicKey: magicKeyIn,
-      };
-      let findAddressUrl = this.geocodeUrl + "/findAddressCandidates?";
-      findAddressUrl += "f=pjson&" + "magicKey=" + magicKeyIn;
-      console.log("findAddressUrl:", findAddressUrl);
-      axios
-        .get(findAddressUrl)
-        .then((response) => {
-          console.log("findAddress response:", response.data.candidates[0]);
-          console.log("location:", response.data.candidates[0].location);
-        })
-        .catch((error) => {
-          console.log("findAddress error:", error);
-        });
-    },
-    getLocation(magicKeyIn) {
-      console.log("getting location, magicKey", magicKeyIn);
-      let params = {
-        magicKey: magicKeyIn,
-      };
-      locator
-        .addressesToLocations(this.geocodeUrl, params)
-        .then((response) => {
-          console.log("location response:", response);
-        })
-        .catch((error) => {
-          console.log("error getting location:", error);
-        });
-    },
-    // this queries the users collection to get data
-    // for each user who is sharing and adds the
-    // lat/long to a point feature, then adds the user's
-    // address to attribute data
-    getSharedBins() {
-      console.log("getting shared bins from users");
+    // get the shared bins to list on the map
+    async mapSharedBins() {
       let features = [];
-      // move this fb call to external function
-      fb_db
-        .collection("users")
-        .where("sharing", "==", true)
-        .get()
-        .then((users) => {
-          users.forEach((user) => {
-            // get the bin data and create a point for it
-            const feature = {
-              geometry: {
-                type: "point",
-                longitude: user.data().location_x,
-                latitude: user.data().location_y,
-              },
-              attributes: {
-                // ObjectID: user.id, // this is not working
-                binID: user.id,
-                address: user.data().address,
-              },
-            };
-            console.log("sharedBin ID:", user.id);
-            console.log("user.data():", user.data());
-            // add feature to features array
-            features.push(feature);
-          }); // end forEach
-          // add features array to the feature layer
-          console.log("features:", features);
-          this.binsLayer.source = features;
-          // add renderer to the feature layer
-          this.binsLayer.renderer = this.binRenderer;
-          // add feature layer to the map
-          this.map.add(this.binsLayer);
-        })
-        .catch((error) => {
-          console.log("error getting shared bins:", error);
-        });
-    },
-    // old, remove
-    getSharedBinsWIP() {
-      // maybe todo: remove current feature layer if exists
-      let features = [];
-      console.log("getting shared bins");
-      // move this fb call to external function
-      fb_db
-        .collection("sharedBins")
-        .get()
-        .then((sharedBins) => {
-          sharedBins.forEach((sharedBin) => {
-            // get the bin data and create a point for it
-            const feature = {
-              geometry: {
-                type: "point",
-                longitude: sharedBin.data().location_x,
-                latitude: sharedBin.data().location_y,
-              },
-              attributes: {
-                ObjectID: sharedBin.id, // this is not working
-                binID: sharedBin.id,
-              },
-            };
-            console.log("sharedBin ID:", sharedBin.id);
-            console.log("sharedBin.data():", sharedBin.data());
-            // add feature to features array
-            features.push(feature);
-          }); // end forEach
-          // add features array to the feature layer
-          console.log("features:", features);
-          // get feature layer
-          // console.log("bins layer:", binsLayer);
-          this.binsLayer.source = features;
-          // add renderer to the feature layer
-          this.binsLayer.renderer = this.binRenderer;
-          // add feature layer to the map
-          this.map.add(this.binsLayer);
-        })
-        .catch((error) => {
-          console.log("error getting shared bins:", error);
-        });
+      let users = await getSharedBins();
+      users.forEach((user) => {
+        // get the bin data and create a point for it
+        const feature = {
+          geometry: {
+            type: "point",
+            longitude: user.data().location_x,
+            latitude: user.data().location_y,
+          },
+          attributes: {
+            binID: user.id,
+            address: user.data().address,
+          },
+        };
+        // add feature to features array
+        features.push(feature);
+      }); // end forEach
+      // add features array to the feature layer
+      this.binsLayer.source = features;
+      // add renderer to the feature layer
+      this.binsLayer.renderer = this.binRenderer;
+      // add feature layer to the map
+      this.map.add(this.binsLayer);
     },
     async shareMyBin() {
       console.log("sharing bin");
@@ -307,30 +214,7 @@ export default {
           console.log("error deleting:", error);
         });
     },
-    async deleteAllFromFeatureLayer() {
-      let pointsToDelete = { deleteFeatures: [] };
-      // get the points in the layer that will be deleted
-      let results = await this.binsLayer.queryFeatures();
-      console.log("results:", results);
-      results.features.forEach((feature) => {
-        pointsToDelete.deleteFeatures.push({
-          objectId: feature.attributes.ObjectID,
-        });
-      });
-      console.log("points to delete:", pointsToDelete);
-
-      // apply the edits (points to be deleted) to the feature layer
-      this.binsLayer
-        .applyEdits(pointsToDelete)
-        .then((results) => {
-          console.log("results from delete request:", results);
-          console.log("points deleted:", results.deleteFeatureResults);
-        })
-        .catch((error) => {
-          console.log("error deleting:", error);
-        });
-    },
-    // for removing the user's shared bin from the feature layer
+    // remove the user's shared bin from the feature layer
     async deleteUserBinFromFeatureLayer() {
       let id = this.user.uid;
       let query = this.binsLayer.createQuery();
@@ -393,7 +277,6 @@ export default {
         layerInfos: [
           {
             layer: this.binsLayer,
-            // title: "Shared Bins",
           },
         ],
       });
@@ -406,6 +289,7 @@ export default {
         container: "table-container",
       });
     },
+    // WIP
     async getRoute(event) {
       // Symbols
       const simpleMarkerSymbol = {
@@ -547,7 +431,7 @@ export default {
     this.view.ui.add(locate, "top-left");
 
     // get the shared bins and add them to the feature layer
-    this.getSharedBins();
+    this.mapSharedBins();
 
     this.view.on("click", this.getRoute);
   }, // end mounted

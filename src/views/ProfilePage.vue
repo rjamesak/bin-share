@@ -60,7 +60,7 @@ import { getSuggestion, getAddressLocation } from "../../services";
 import Spinner from "vue-simple-spinner";
 
 export default {
-  name: "Profile",
+  name: "ProfilePage",
   components: { navbar, vueSpinner: Spinner },
   data() {
     return {

@@ -23,7 +23,7 @@
 import navbar from "@/components/navbar.vue";
 
 export default {
-  name: "Signup",
+  name: "SignUp",
   components: { navbar },
   data() {
     return {
