@@ -2,16 +2,22 @@
   <div class="List">
     <navbar />
     <h1>Available Trash Bins</h1>
-    <div
-      v-for="(availableBin, index) in availableBins"
-      :key="availableBin.id"
-      class="bin-list"
-    >
-      <div>Address: {{ availableBin.address }}</div>
-      <div v-for="direction in availableBin.directions">{{ direction }}</div>
-      <button type="button" @click.prevent="getDirections($event, index)">
-        Go Here!
-      </button>
+    <div class="list-container">
+      <div
+        v-for="(availableBin, index) in availableBins"
+        :key="availableBin.id"
+        class="bin-list"
+      >
+        <div>Address: {{ availableBin.address }}</div>
+        <div v-for="direction in availableBin.directions">{{ direction }}</div>
+        <button
+          class="submit-button"
+          type="button"
+          @click.prevent="getDirections($event, index)"
+        >
+          Go Here!
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -96,10 +102,15 @@ export default {
   display: flex;
   flex-direction: column;
   margin: 10px;
-  outline: thin solid black;
+  border-bottom: thin solid darkslategrey;
+}
+.list-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 button {
-  max-width: 300px;
   margin: auto;
+  margin-bottom: 4px;
 }
 </style>
