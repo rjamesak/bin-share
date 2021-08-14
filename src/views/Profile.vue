@@ -45,7 +45,7 @@
           v-model="form.city"
           :placeholder="user.city"
         />
-        <button type="submit">Update Information</button>
+        <button class="submit-button" type="submit">Update Profile</button>
       </form>
 
       <a href="" @click.prevent="signout">Sign me out</a>

@@ -35,4 +35,18 @@
 button {
   margin: 10px;
 }
+
+.submit-button {
+  background-color: #4caf50; /* Green */
+  border-radius: 12px;
+  border: thin solid darkslategrey;
+  color: white;
+  padding: 8px 32px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+}
+.submit-button:hover {
+  cursor: pointer;
+}
 </style>

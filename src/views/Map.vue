@@ -4,12 +4,24 @@
     <h1>Map Page</h1>
     <!-- <div>{{ user }}</div> -->
     <div id="viewDiv"></div>
-    <button v-if="user.sharing" type="button" @click.prevent="unshareMyBin">
-      Stop Sharing My Bin
-    </button>
-    <button v-else type="button" @click.prevent="shareMyBin">
-      Share My Bin
-    </button>
+    <div class="button-container">
+      <button
+        class="stop-share-button"
+        v-if="user.sharing"
+        type="button"
+        @click.prevent="unshareMyBin"
+      >
+        Stop Sharing My Bin
+      </button>
+      <button
+        class="share-button"
+        v-else
+        type="button"
+        @click.prevent="shareMyBin"
+      >
+        Share My Bin
+      </button>
+    </div>
   </div>
 </template>
 
@@ -27,8 +39,6 @@ import FeatureSet from "@arcgis/core/rest/support/FeatureSet";
 import Search from "@arcgis/core/widgets/Search";
 import Directions from "@arcgis/core/widgets/Directions";
 import LayerList from "@arcgis/core/widgets/LayerList";
-// import FeatureTable from "@arcgis/core/widgets/FeatureTable";
-// import Legend from "@arcgis/core/widgets/Legend";
 import navbar from "@/components/navbar.vue";
 import Locator from "@arcgis/core/tasks/Locator";
 import SimpleRenderer from "@arcgis/core/renderers/SimpleRenderer";
@@ -555,8 +565,42 @@ export default {
 #viewDiv {
   padding: 0;
   margin: auto;
-  height: 90vh;
-  width: 90vw;
+  height: 85vh;
+  width: 85vw;
   align-self: center;
+}
+.button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.share-button {
+  position: absolute;
+  bottom: 10px;
+  background-color: #4caf50; /* Green */
+  border-radius: 12px;
+  border: thin solid darkslategrey;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+}
+.share-button:hover,
+.stop-share-button:hover {
+  cursor: pointer;
+}
+.stop-share-button {
+  position: absolute;
+  bottom: 10px;
+  background-color: #f44336; /* Green */
+  border-radius: 12px;
+  border: thin solid darkslategrey;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  display: inline-block;
 }
 </style>

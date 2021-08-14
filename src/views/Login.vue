@@ -24,7 +24,7 @@
           id="password-input"
           v-model="form.password"
         />
-        <button type="submit">Submit</button>
+        <button class="submit-button" type="submit">Submit</button>
       </form>
     </div>
   </div>
