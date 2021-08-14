@@ -67,6 +67,7 @@ export default {
 p {
   margin: auto;
   max-width: 320px;
+  padding-top: 24px;
 }
 ol {
   display: flex;
