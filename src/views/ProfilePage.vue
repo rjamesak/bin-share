@@ -36,15 +36,18 @@
           id="address"
           v-model="form.address"
           :placeholder="user.address"
+          v-on:input="getRecommendations"
         />
-        <label for="city">City:</label>
-        <input
-          type="text"
-          name="city"
-          id="city"
-          v-model="form.city"
-          :placeholder="user.city"
-        />
+        <ul>
+          <li
+            v-for="suggestion in suggestions"
+            :key="suggestion.text"
+            @click="populateAddress"
+            class="suggested-addresses"
+          >
+            {{ suggestion.text }}
+          </li>
+        </ul>
         <button class="submit-button" type="submit">Update Profile</button>
       </form>
 
@@ -56,7 +59,11 @@
 <script>
 // @ is an alias to /src
 import navbar from "@/components/navbar.vue";
-import { getSuggestion, getAddressLocation } from "../../services";
+import {
+  getSuggestion,
+  getSuggestions,
+  getAddressLocation,
+} from "../../services";
 import Spinner from "vue-simple-spinner";
 
 export default {
@@ -72,6 +79,7 @@ export default {
         location_x: "",
         location_y: "",
       },
+      suggestions: [],
     };
   },
   methods: {
@@ -113,6 +121,16 @@ export default {
       console.log("user before dispatch:", user);
       await this.$store.dispatch("updateUserProfile", user);
     },
+    async getRecommendations() {
+      let response = await getSuggestions(this.form.address);
+      console.log("responses:", response);
+      this.suggestions = response;
+    },
+    populateAddress(event) {
+      let address = event.target.innerText;
+      this.form.address = address;
+      this.suggestions = [];
+    },
     validateUserInfo(user) {
       // validate
       if (user.email === "") user.email = this.user.email;
@@ -143,5 +161,13 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+.suggested-addresses {
+  list-style-type: none;
+  border: solid thin darkslategrey;
+}
+.suggested-addresses:hover {
+  cursor: pointer;
+  background: aliceblue;
 }
 </style>

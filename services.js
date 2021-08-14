@@ -22,6 +22,22 @@ const getSuggestion = (address) => {
     })
 }
 
+const getSuggestions = (address) => {
+    return new Promise((resolve, reject) => {
+        console.log('getting suggest...')
+        let params = { text: address }
+        locator
+            .suggestLocations(geocodeUrl, params)
+            .then((response) => {
+                // console.log('suggest response:', response[0]);
+                resolve((response));
+            })
+            .catch((error) => {
+                reject(console.log("Error with Suggest:", error));
+            });
+    })
+}
+
 const getAddressLocation = (magicKey) => {
     return new Promise((resolve, reject) => {
         let findAddressUrl = geocodeUrl + "/findAddressCandidates?";
@@ -43,4 +59,4 @@ const getAddressLocation = (magicKey) => {
 }
 
 
-export { getSuggestion, getAddressLocation }
+export { getSuggestion, getSuggestions, getAddressLocation }
