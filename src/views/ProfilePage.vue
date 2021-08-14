@@ -139,4 +139,9 @@ export default {
   height: 120px;
   width: 120px;
 }
+.content-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 </style>
