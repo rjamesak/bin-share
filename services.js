@@ -41,7 +41,7 @@ const getSuggestions = (address) => {
 const getAddressLocation = (magicKey) => {
     return new Promise((resolve, reject) => {
         let findAddressUrl = geocodeUrl + "/findAddressCandidates?";
-        findAddressUrl += "f=pjson&" + "magicKey=" + magicKey;
+        findAddressUrl += "f=pjson&" + "magicKey=" + magicKey + "locationType=street";
         console.log("findAddressUrl:", findAddressUrl);
         axios
             .get(findAddressUrl)
