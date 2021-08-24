@@ -350,7 +350,13 @@ export default {
       route
         .solve(this.routeUrl, routeParams)
         .then((data) => {
-          console.log("data:", data);
+          this.view.graphics.removeAll();
+          console.log("route results:", data.routeResults);
+          // add the symbol to the route results
+          data.routeResults.forEach((result) => {
+            result.route.symbol = routeSymbol;
+            this.view.graphics.add(result.route);
+          });
         })
         .catch((error) => {
           console.log("error solving:", error);
