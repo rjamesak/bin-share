@@ -35,6 +35,7 @@ import Locate from "@arcgis/core/widgets/Locate";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import FeatureSet from "@arcgis/core/rest/support/FeatureSet";
+import RouteParameters from "@arcgis/core/rest/support/RouteParameters";
 import Search from "@arcgis/core/widgets/Search";
 import Directions from "@arcgis/core/widgets/Directions";
 import LayerList from "@arcgis/core/widgets/LayerList";
@@ -61,6 +62,7 @@ export default {
       binsLayer: new FeatureLayer({
         title: "Shared Bins",
         source: [],
+        spatialReference: { wkid: 4326 },
         objectIdField: "ObjectID",
         fields: [
           {
@@ -289,7 +291,8 @@ export default {
       });
     },
     // WIP
-    async getRoute(event) {
+    async getRoute(destination) {
+      console.log("destination geom in getRoute: ", destination);
       // Symbols
       const simpleMarkerSymbol = {
         type: "simple-marker",
@@ -317,27 +320,30 @@ export default {
         symbol: simpleMarkerSymbol,
       });
 
-      let clickedPointGraphic = new Graphic({
-        geometry: event.mapPoint,
+      let destinationGraphic = new Graphic({
+        geometry: {
+          type: "point",
+          longitude: destination.longitude,
+          latitude: destination.latitude,
+        },
         symbol: simpleMarkerSymbol,
       });
 
       // add point graphics to the graphics layer
       let routeLayer = new GraphicsLayer();
       routeLayer.add(userPointGraphic);
-      routeLayer.add(clickedPointGraphic);
+      routeLayer.add(destinationGraphic);
 
       console.log("before route params");
-      const routeParams = {
-        apiKey: this.apiKey,
+      const routeParams = new RouteParameters({
         stops: new FeatureSet({
           features: [],
         }),
-      };
+      });
 
       // push the points to the route params stops
       routeParams.stops.features.push(userPointGraphic);
-      routeParams.stops.features.push(clickedPointGraphic);
+      routeParams.stops.features.push(destinationGraphic);
       console.log("routeParams:", routeParams);
 
       // solve the route
@@ -358,6 +364,24 @@ export default {
       // let calculatedRoute = routeResults.data.routeResults[0].route;
       // calculatedRoute.symbol = routeSymbol;
       // routeLayer.add(calculatedRoute);
+    },
+    addRoutePopupAction() {
+      console.log("adding popup action");
+      let getRouteAction = {
+        title: "Get Directions",
+        id: "get-route",
+        className: "esri-icon-right-arrow-circled",
+      };
+      this.view.popup.actions.push(getRouteAction);
+      this.view.popup.on("trigger-action", (event) => {
+        if (event.action.id === "get-route") {
+          console.log("getting route...");
+          console.log("event: ", event);
+          let destinationGeometry = this.view.popup.selectedFeature.geometry;
+          console.log("dest geom: ", destinationGeometry);
+          this.getRoute(destinationGeometry);
+        }
+      });
     },
   }, // end methods
   mounted() {
@@ -432,7 +456,9 @@ export default {
     // get the shared bins and add them to the feature layer
     this.mapSharedBins();
 
-    this.view.on("click", this.getRoute);
+    this.addRoutePopupAction();
+
+    //this.view.on("click", this.getRoute);
   }, // end mounted
   computed: {
     user() {
