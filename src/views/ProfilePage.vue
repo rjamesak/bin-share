@@ -75,7 +75,6 @@ export default {
         fullName: "",
         email: "",
         address: "",
-        city: "",
         location_x: "",
         location_y: "",
       },
@@ -136,7 +135,6 @@ export default {
       if (user.email === "") user.email = this.user.email;
       if (user.fullName === "") user.fullName = this.user.fullName;
       if (user.address === "") user.address = this.user.address;
-      if (user.city === "") user.city = this.user.city;
       if (user.location_x === "") user.location_x = this.user.location_x;
       if (user.location_y === "") user.location_y = this.user.location_y;
       console.log("user after validation:", user);
