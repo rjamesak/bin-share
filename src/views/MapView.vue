@@ -361,15 +361,6 @@ export default {
         .catch((error) => {
           console.log("error solving:", error);
         });
-      // try {
-      //   let routeResults = await route.solve(this.routeUrl, routeParams);
-      // } catch (error) {
-      //   console.log("error getting route:", error);
-      // }
-      // // show the route
-      // let calculatedRoute = routeResults.data.routeResults[0].route;
-      // calculatedRoute.symbol = routeSymbol;
-      // routeLayer.add(calculatedRoute);
     },
     addRoutePopupAction() {
       console.log("adding popup action");

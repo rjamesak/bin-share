@@ -9,6 +9,7 @@
 
       <router-link :to="{ name: 'About' }">About Bin Share</router-link> <br />
       <img class="world-logo" src="@/assets/travel_explore_black_24dp.svg" />
+      <h2>Login</h2>
       <form @submit.prevent="submit" class="form-items">
         <label for="email-input">Email</label>
         <input
@@ -26,6 +27,9 @@
         />
         <button class="submit-button" type="submit">Submit</button>
       </form>
+      <router-link :to="{ name: 'Signup' }"
+        >New users sign up here.</router-link
+      >
     </div>
   </div>
 </template>

@@ -1,7 +1,7 @@
 <template>
   <div class="signup">
     <navbar />
-    <h1>Signup Page</h1>
+    <h1>Create new account</h1>
     <form @submit.prevent="submit" class="form-items">
       <label for="email-input">Email</label>
       <input type="email" name="email" id="email-input" v-model="form.email" />
